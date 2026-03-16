@@ -1,0 +1,196 @@
+/* ===== SUCCESS PAGE STYLES ===== */
+
+.main-content {
+    padding: 100px 20px 40px;
+    max-width: 500px;
+    margin: 0 auto;
+}
+
+.success-card {
+    background: rgba(18,20,26,0.8);
+    backdrop-filter: blur(10px);
+    border-radius: 24px;
+    padding: 30px 25px;
+    border: 2px solid #00ff88;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.7), 0 0 20px #00ff88;
+    position: relative;
+    overflow: hidden;
+    animation: fadeIn 0.5s ease;
+}
+
+.success-card::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle at 30% 30%, rgba(0,255,136,0.1), transparent 70%);
+    opacity: 0.3;
+    pointer-events: none;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.success-title {
+    color: #00ff88;
+    font-size: 28px;
+    font-weight: 700;
+    text-align: center;
+    margin-bottom: 25px;
+    text-shadow: 0 0 10px #00ff88;
+}
+
+.success-detail {
+    background: rgba(0,0,0,0.3);
+    border-radius: 16px;
+    padding: 20px;
+    margin-bottom: 25px;
+}
+
+.detail-row {
+    display: flex;
+    flex-wrap: wrap;
+    margin-bottom: 12px;
+    font-size: 14px;
+}
+
+.detail-label {
+    flex: 0 0 100px;
+    color: #aaa;
+    font-weight: 400;
+}
+
+.detail-value {
+    flex: 1;
+    color: white;
+    font-weight: 500;
+    word-break: break-word;
+}
+
+.detail-value.status-done {
+    color: #00ff88;
+    font-weight: 700;
+    text-shadow: 0 0 5px #00ff88;
+}
+
+.action-buttons {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+}
+
+.btn-home, .btn-struk {
+    flex: 1;
+    padding: 12px 0;
+    border-radius: 40px;
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    transition: 0.2s;
+    border: 2px solid;
+    background: transparent;
+    text-align: center;
+}
+
+.btn-home {
+    border-color: #00e5ff;
+    color: #00e5ff;
+}
+.btn-home:hover {
+    background: #00e5ff;
+    color: black;
+    box-shadow: 0 0 20px #00e5ff;
+    transform: translateY(-2px);
+}
+
+.btn-struk {
+    border-color: #00ff88;
+    color: #00ff88;
+}
+.btn-struk:hover {
+    background: #00ff88;
+    color: black;
+    box-shadow: 0 0 20px #00ff88;
+    transform: translateY(-2px);
+}
+
+/* ===== LOADING OVERLAY ===== */
+.loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.8);
+    backdrop-filter: blur(5px);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 10000;
+    transition: 0.3s;
+}
+.loading-overlay.hidden {
+    visibility: hidden;
+    opacity: 0;
+    pointer-events: none;
+}
+.loader-rings {
+    position: relative;
+    width: 80px;
+    height: 80px;
+    margin-bottom: 30px;
+}
+.ring {
+    position: absolute;
+    border-radius: 50%;
+    border: 3.5px solid transparent;
+}
+.ring-outer {
+    width: 100%;
+    height: 100%;
+    border-top-color: #00e5ff;
+    border-bottom-color: #00e5ff;
+    animation: spinStop 2s ease-in-out infinite;
+}
+.ring-inner {
+    width: 54px;
+    height: 54px;
+    top: 13px;
+    left: 13px;
+    border-left-color: #bf00ff;
+    border-right-color: #bf00ff;
+    animation: spinStopReverse 2s ease-in-out infinite;
+}
+@keyframes spinStop {
+    0% { transform: rotate(0deg); }
+    45% { transform: rotate(360deg); }
+    55% { transform: rotate(360deg); }
+    100% { transform: rotate(720deg); }
+}
+@keyframes spinStopReverse {
+    0% { transform: rotate(0deg); }
+    45% { transform: rotate(-360deg); }
+    55% { transform: rotate(-360deg); }
+    100% { transform: rotate(-720deg); }
+}
+.loading-text {
+    color: #00e5ff;
+    font-size: 18px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    text-shadow: 0 0 8px #00e5ff;
+}
+
+/* Responsif */
+@media (max-width: 480px) {
+    .success-title { font-size: 24px; }
+    .detail-label { flex-basis: 80px; font-size: 13px; }
+    .detail-value { font-size: 13px; }
+    .action-buttons { flex-direction: column; }
+    .btn-home, .btn-struk { width: 100%; }
+}
