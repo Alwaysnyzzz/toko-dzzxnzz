@@ -1,55 +1,35 @@
-// functions/api/auth/login.js — Cloudflare Pages Functions format
-import { createClient } from '@supabase/supabase-js';
-import bcrypt from 'bcryptjs';
-import jwt from 'jsonwebtoken';
+import { verifyPassword, signJWT, supabase, json, CORS } from '../_helper.js';
 
 export async function onRequestPost({ request, env }) {
-  const headers = {
-    'Content-Type': 'application/json',
-    'Access-Control-Allow-Origin': '*'
-  };
-
   try {
     const { username, password } = await request.json();
+    if (!username || !password) return json({ error: 'Username dan password wajib diisi' }, 400);
 
-    if (!username || !password)
-      return new Response(JSON.stringify({ error: 'Username dan password wajib diisi' }), { status: 400, headers });
-
-    const supabase = createClient(env.SUPABASE_URL, env.SUPABASE_SERVICE_KEY);
-
-    const { data: user, error } = await supabase
+    const db = supabase(env);
+    const { data: user, error } = await db
       .from('profiles')
       .select('id, username, password_hash, coins')
       .eq('username', username.trim().toLowerCase())
       .single();
 
-    if (error || !user)
-      return new Response(JSON.stringify({ error: 'Username atau password salah' }), { status: 401, headers });
+    if (error || !user) return json({ error: 'Username atau password salah' }, 401);
 
-    const valid = await bcrypt.compare(password, user.password_hash);
-    if (!valid)
-      return new Response(JSON.stringify({ error: 'Username atau password salah' }), { status: 401, headers });
+    const valid = await verifyPassword(password, user.password_hash);
+    if (!valid) return json({ error: 'Username atau password salah. Jika akun lama, silakan reset password.' }, 401);
 
-    const token = jwt.sign(
-      { id: user.id, username: user.username },
-      env.JWT_SECRET,
-      { expiresIn: '7d' }
-    );
+    const token = await signJWT({ id: user.id, username: user.username }, env.JWT_SECRET);
 
-    return new Response(JSON.stringify({
+    return json({
       session: {
         access_token: token,
         expires_at: Math.floor(Date.now() / 1000) + 7 * 24 * 3600,
         user: { id: user.id, username: user.username }
       },
       profile: { id: user.id, username: user.username, coins: user.coins }
-    }), { status: 200, headers });
-
+    });
   } catch (err) {
-    return new Response(JSON.stringify({ error: 'Internal server error' }), { status: 500, headers });
+    return json({ error: 'Internal server error: ' + err.message }, 500);
   }
 }
 
-export async function onRequestOptions() {
-  return new Response(null, { status: 204, headers: { 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Methods': 'POST, OPTIONS', 'Access-Control-Allow-Headers': 'Content-Type, Authorization' } });
-}
+export const onRequestOptions = () => CORS;

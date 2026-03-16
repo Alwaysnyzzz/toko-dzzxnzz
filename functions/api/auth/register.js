@@ -1,66 +1,37 @@
-// functions/api/auth/register.js — Cloudflare Pages Functions
-import { createClient } from '@supabase/supabase-js';
-import bcrypt from 'bcryptjs';
-import jwt from 'jsonwebtoken';
-
-const HEADERS = { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' };
+import { hashPassword, signJWT, supabase, json, CORS } from '../_helper.js';
 
 export async function onRequestPost({ request, env }) {
   try {
     const { username, password } = await request.json();
+    if (!username || !password) return json({ error: 'Username dan password wajib diisi' }, 400);
+    if (username.length < 3) return json({ error: 'Username minimal 3 karakter' }, 400);
+    if (password.length < 6) return json({ error: 'Password minimal 6 karakter' }, 400);
 
-    if (!username || !password)
-      return new Response(JSON.stringify({ error: 'Username dan password wajib diisi' }), { status: 400, headers: HEADERS });
+    const db = supabase(env);
+    const { data: existing } = await db.from('profiles').select('id').eq('username', username.trim().toLowerCase()).single();
+    if (existing) return json({ error: 'Username sudah dipakai' }, 409);
 
-    if (username.length < 3)
-      return new Response(JSON.stringify({ error: 'Username minimal 3 karakter' }), { status: 400, headers: HEADERS });
-
-    if (password.length < 6)
-      return new Response(JSON.stringify({ error: 'Password minimal 6 karakter' }), { status: 400, headers: HEADERS });
-
-    const supabase = createClient(env.SUPABASE_URL, env.SUPABASE_SERVICE_KEY);
-
-    // Cek username sudah ada
-    const { data: existing } = await supabase
-      .from('profiles')
-      .select('id')
-      .eq('username', username.trim().toLowerCase())
-      .single();
-
-    if (existing)
-      return new Response(JSON.stringify({ error: 'Username sudah dipakai' }), { status: 409, headers: HEADERS });
-
-    const password_hash = await bcrypt.hash(password, 12);
-
-    const { data: newUser, error } = await supabase
+    const password_hash = await hashPassword(password);
+    const { data: newUser, error } = await db
       .from('profiles')
       .insert({ username: username.trim().toLowerCase(), password_hash, coins: 0 })
-      .select('id, username, coins')
-      .single();
+      .select('id, username, coins').single();
 
-    if (error)
-      return new Response(JSON.stringify({ error: 'Gagal membuat akun: ' + error.message }), { status: 500, headers: HEADERS });
+    if (error) return json({ error: 'Gagal buat akun: ' + error.message }, 500);
 
-    const token = jwt.sign(
-      { id: newUser.id, username: newUser.username },
-      env.JWT_SECRET,
-      { expiresIn: '7d' }
-    );
+    const token = await signJWT({ id: newUser.id, username: newUser.username }, env.JWT_SECRET);
 
-    return new Response(JSON.stringify({
+    return json({
       session: {
         access_token: token,
         expires_at: Math.floor(Date.now() / 1000) + 7 * 24 * 3600,
         user: { id: newUser.id, username: newUser.username }
       },
       profile: { id: newUser.id, username: newUser.username, coins: 0 }
-    }), { status: 200, headers: HEADERS });
-
+    });
   } catch (err) {
-    return new Response(JSON.stringify({ error: 'Internal server error' }), { status: 500, headers: HEADERS });
+    return json({ error: 'Internal server error: ' + err.message }, 500);
   }
 }
 
-export async function onRequestOptions() {
-  return new Response(null, { status: 204, headers: { 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Methods': 'POST, OPTIONS', 'Access-Control-Allow-Headers': 'Content-Type, Authorization' } });
-}
+export const onRequestOptions = () => CORS;
