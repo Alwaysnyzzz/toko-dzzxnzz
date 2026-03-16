@@ -1,4 +1,4 @@
-import { verifyJWT, getToken, supabase, json, CORS } from './_helper.js';
+import { verifyJWT, getToken, supabase, json, CORS } from './helper.js';
 
 export async function onRequestGet({ request, env }) {
   try {

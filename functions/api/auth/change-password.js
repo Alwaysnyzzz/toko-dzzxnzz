@@ -1,4 +1,4 @@
-import { verifyPassword, hashPassword, verifyJWT, getToken, supabase, json, CORS } from '../_helper.js';
+import { verifyPassword, hashPassword, verifyJWT, getToken, supabase, json, CORS } from '../helper.js';
 
 export async function onRequestPost({ request, env }) {
   try {
